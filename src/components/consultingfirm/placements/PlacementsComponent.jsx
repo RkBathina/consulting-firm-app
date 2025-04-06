@@ -173,7 +173,7 @@ function PlacementsComponent() {
                 </div>
             </Form.Group>
 
-           
+
 
             <Table striped bordered responsive="sm" size="sm">
                 <thead>

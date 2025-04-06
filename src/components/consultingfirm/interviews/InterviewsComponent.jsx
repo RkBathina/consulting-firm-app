@@ -5,9 +5,8 @@ import {
   updateInterviewApi,
   deleteInterviewsApi,
 } from "../api/UserDetailsApiService";
-import { Table, Form } from "react-bootstrap";
+import { Modal, Button, Pagination, InputGroup, Table, Form } from "react-bootstrap";
 import Spinner from "react-bootstrap/Spinner";
-import { Modal, Button, Pagination, InputGroup } from "react-bootstrap";
 import { BsSearch } from "react-icons/bs";
 import "bootstrap-icons/font/bootstrap-icons.css";
 

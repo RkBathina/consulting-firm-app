@@ -7,7 +7,6 @@ import DailySubmissionsComponent from './dailysubmissions/DailySubmissionsCompon
 import InterviewsComponent from './interviews/InterviewsComponent';
 import PlacementsComponent from './placements/PlacementsComponent';
 
-
 import './static/ConsultingFirmApp.css';
 
 export default function ConsultingFirmApp() {

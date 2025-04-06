@@ -6,10 +6,19 @@ import {
     deleteBenchProfileApi
 }
     from "../api/UserDetailsApiService";
-import { Table, Form } from 'react-bootstrap';
+import {
+    Table,
+    Form,
+    Button,
+    InputGroup,
+}
+    from 'react-bootstrap';
+
+import { getValidationSchema } from '../api/validation/ValidateBenchProfileSchema';
 import Spinner from 'react-bootstrap/Spinner';
-import { Modal, Button, Pagination, InputGroup } from 'react-bootstrap';
 import { BsSearch } from 'react-icons/bs';
+import PaginationComponent from "./PaginationComponent";
+import ModalComponent from "./ModalComponent";
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 function BenchProfilesComponent() {
@@ -19,6 +28,8 @@ function BenchProfilesComponent() {
     const [isEditing, setIsEditing] = useState(false);
     const [editingProfile, setEditingProfile] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
+    const [validationErrors, setValidationErrors] = useState({});
+    const validationSchema = getValidationSchema();
 
     // Pagination states
     const [currentPage, setCurrentPage] = useState(1);
@@ -99,51 +110,68 @@ function BenchProfilesComponent() {
     };
 
     const handleSaveEdit = async () => {
-        // Prepare the profile data to be sent
-        const profileData = {
-            recruiterName: editingProfile.recruiterName || '',
-            consultantName: editingProfile.consultantName || '',
-            allocatedStatus: editingProfile.allocatedStatus || '',
-            status: editingProfile.status || '',
-            turboCheck: editingProfile.turboCheck || '',
-            priority: editingProfile.priority || '',
-            technology: editingProfile.technology || '',
-            organization: editingProfile.organization || '',
-            experience: editingProfile.experience || '',
-            location: editingProfile.location || '',
-            relocation: editingProfile.relocation || '',
-            modeOfStaying: editingProfile.modeOfStaying || '',
-            newOrExisting: editingProfile.newOrExisting || '',
-            sourcedBy: editingProfile.sourcedBy || '',
-            visaStatus: editingProfile.visaStatus || '',
-            marketingVisaStatus: editingProfile.marketingVisaStatus || '',
-            contactNumber: editingProfile.contactNumber || '',
-            emailId: editingProfile.emailId || '',
-            originalDob: editingProfile.originalDob || '',
-            marketingDob: editingProfile.marketingDob || '',
-            whatsappNumber: editingProfile.whatsappNumber || '',
-            marketingStartDate: editingProfile.marketingStartDate || '',
-            marketingEndDate: editingProfile.marketingEndDate || '',
-            comments: editingProfile.comments || ''
-        };
+        // // Prepare the profile data to be sent
+        // const profileData = {
+        //     recruiterName: editingProfile.recruiterName || '',
+        //     consultantName: editingProfile.consultantName || '',
+        //     allocatedStatus: editingProfile.allocatedStatus || '',
+        //     status: editingProfile.status || '',
+        //     turboCheck: editingProfile.turboCheck || '',
+        //     priority: editingProfile.priority || '',
+        //     technology: editingProfile.technology || '',
+        //     organization: editingProfile.organization || '',
+        //     experience: editingProfile.experience || '',
+        //     location: editingProfile.location || '',
+        //     relocation: editingProfile.relocation || '',
+        //     modeOfStaying: editingProfile.modeOfStaying || '',
+        //     newOrExisting: editingProfile.newOrExisting || '',
+        //     sourcedBy: editingProfile.sourcedBy || '',
+        //     visaStatus: editingProfile.visaStatus || '',
+        //     marketingVisaStatus: editingProfile.marketingVisaStatus || '',
+        //     contactNumber: editingProfile.contactNumber || '',
+        //     emailId: editingProfile.emailId || '',
+        //     originalDob: editingProfile.originalDob || '',
+        //     marketingDob: editingProfile.marketingDob || '',
+        //     whatsappNumber: editingProfile.whatsappNumber || '',
+        //     marketingStartDate: editingProfile.marketingStartDate || '',
+        //     marketingEndDate: editingProfile.marketingEndDate || '',
+        //     comments: editingProfile.comments || ''
+        // };
+
 
         try {
+            // Validate the data
+            await validationSchema.validate(editingProfile, { abortEarly: false });
+            
             if (editingProfile.id) {
                 // Update existing profile
-                await updateBenchProfileApi(editingProfile.id, profileData);
+                await updateBenchProfileApi(editingProfile.id, editingProfile);
                 const updatedProfiles = benchProfiles.map((profile) =>
-                    profile.id === editingProfile.id ? { ...profile, ...profileData } : profile
+                    profile.id === editingProfile.id ? { ...profile, ...editingProfile } : profile
                 );
                 setBenchProfiles(updatedProfiles.sort((a, b) => a.id - b.id));
             } else {
                 // Add new profile
-                const response = await createBenchProfilesApi(profileData);
+                const response = await createBenchProfilesApi(editingProfile);
                 setBenchProfiles([...benchProfiles, response.data].sort((a, b) => a.id - b.id));
             }
+            setIsEditing(false);
+            setValidationErrors({});
         } catch (error) {
-            console.error("Error saving profile:", error.response ? error.response.data : error.message);
+            if (error.name === 'ValidationError') {
+                // Handle Yup validation errors
+                const errors = {};
+                error.inner.forEach((err) => {
+                    errors[err.path] = err.message;
+                });
+                setValidationErrors(errors);
+            } else {
+                // Handle API errors
+                console.error("Error saving profile:", error.response ? error.response.data : error.message);
+                setValidationErrors({ api: "An error occurred while saving the profile." });
+            }
         }
-        setIsEditing(false);
+       
     };
 
     const handleDelete = async (id) => {
@@ -283,323 +311,22 @@ function BenchProfilesComponent() {
                     ))}
                 </tbody>
             </Table>
-            <Pagination className="justify-content-center" size="sm">
-                {[...Array(Math.ceil(benchProfiles.length / profilesPerPage))].map((_, index) => (
-                    <Pagination.Item
-                        key={index + 1}
-                        active={index + 1 === currentPage}
-                        onClick={() => paginate(index + 1)}
-                    >
-                        {index + 1}
-                    </Pagination.Item>
-                ))}
-            </Pagination>
 
-            {isEditing && (
-                <Modal show={isEditing} onHide={() => setIsEditing(false)}>
-                    <Modal.Header closeButton>
-                        <Modal.Title>{editingProfile && editingProfile.id ? "Edit Bench Profile" : "Add New Bench Profile"}</Modal.Title>
-                    </Modal.Header>
-                    <Modal.Body>
-                        <form>
-                            {/* Recruiter Name */}
-                            <div>
-                                <label>Recruiter Name</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.recruiterName : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, recruiterName: e.target.value })
-                                    }
-                                />
-                            </div>
+            <PaginationComponent
+                currentPage={currentPage}
+                totalPages={Math.ceil(benchProfiles.length / profilesPerPage)}
+                paginate={paginate}
+            />
 
-                            {/* Consultant Name */}
-                            <div>
-                                <label>Consultant Name</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.consultantName : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, consultantName: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Allocated Status */}
-                            <div>
-                                <label>Allocated Status</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.allocatedStatus : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, allocatedStatus: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Status */}
-                            <div>
-                                <label>Status</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.status : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, status: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* TurboCheck */}
-                            <div>
-                                <label>TurboCheck</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.turboCheck : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, turboCheck: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Priority */}
-                            <div>
-                                <label>Priority</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.priority : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, priority: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Technology */}
-                            <div>
-                                <label>Technology</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.technology : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, technology: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Organization */}
-                            <div>
-                                <label>Organization</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.organization : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, organization: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Experience */}
-                            <div>
-                                <label>Experience</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.experience : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, experience: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Location */}
-                            <div>
-                                <label>Location</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.location : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, location: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Relocation */}
-                            <div>
-                                <label>Relocation</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.relocation : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, relocation: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* ModeOfStaying */}
-                            <div>
-                                <label>ModeOfStaying</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.modeOfStaying : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, modeOfStaying: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* New or Existing */}
-                            <div>
-                                <label>New or Existing</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.newOrExisting : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, newOrExisting: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Sourced By */}
-                            <div>
-                                <label>Sourced By</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.sourcedBy : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, sourcedBy: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Visa Status */}
-                            <div>
-                                <label>Visa Status</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.visaStatus : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, visaStatus: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Marketing Visa Status */}
-                            <div>
-                                <label>Marketing Visa Status</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.marketingVisaStatus : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, marketingVisaStatus: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Contact Number */}
-                            <div>
-                                <label>Contact Number</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.contactNumber : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, contactNumber: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Email ID */}
-                            <div>
-                                <label>Email ID</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.emailId : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, emailId: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Original DOB */}
-                            <div>
-                                <label>Original DOB</label>
-                                <input
-                                    type="date"
-                                    value={editingProfile ? editingProfile.originalDob : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, originalDob: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Marketing DOB */}
-                            <div>
-                                <label>Marketing DOB</label>
-                                <input
-                                    type="date"
-                                    value={editingProfile ? editingProfile.marketingDob : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, marketingDob: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* WhatsApp Number */}
-                            <div>
-                                <label>WhatsApp Number</label>
-                                <input
-                                    type="text"
-                                    value={editingProfile ? editingProfile.whatsappNumber : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, whatsappNumber: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Marketing Start Date */}
-                            <div>
-                                <label>Marketing Start Date</label>
-                                <input
-                                    type="date"
-                                    value={editingProfile ? editingProfile.marketingStartDate : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, marketingStartDate: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Marketing End Date */}
-                            <div>
-                                <label>Marketing End Date</label>
-                                <input
-                                    type="date"
-                                    value={editingProfile ? editingProfile.marketingEndDate : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, marketingEndDate: e.target.value })
-                                    }
-                                />
-                            </div>
-
-                            {/* Comments */}
-                            <div>
-                                <label>Comments</label>
-                                <textarea
-                                    value={editingProfile ? editingProfile.comments : ""}
-                                    onChange={(e) =>
-                                        setEditingProfile({ ...editingProfile, comments: e.target.value })
-                                    }
-                                />
-                            </div>
-                        </form>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={() => setIsEditing(false)}>
-                            Close
-                        </Button>
-                        <Button variant="primary" onClick={handleSaveEdit}>
-                            Save
-                        </Button>
-                    </Modal.Footer>
-                </Modal>
-            )}
+            <ModalComponent
+                show={isEditing}
+                onHide={() => setIsEditing(false)}
+                title={editingProfile && editingProfile.id ? "Edit Bench Profile" : "Add New Bench Profile"}
+                onSave={handleSaveEdit}
+                editingProfile={editingProfile}
+                setEditingProfile={setEditingProfile}
+                validationErrors={validationErrors}
+            />
         </div>
     );
 }
