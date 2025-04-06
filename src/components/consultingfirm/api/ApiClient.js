@@ -1,4 +1,5 @@
 import axios from 'axios'
+//const axios = require('axios');
 
 export const apiClient = axios.create({
     baseURL: 'http://localhost:8083',
@@ -7,3 +8,9 @@ export const apiClient = axios.create({
     }
 }
 );
+
+// const axios = require('axios');
+
+// export const apiClient = axios.create({
+//   baseURL: 'http://localhost:8083',
+// });

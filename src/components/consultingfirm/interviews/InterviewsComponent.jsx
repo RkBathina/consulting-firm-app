@@ -4,7 +4,6 @@ import {
   retrieveAllInterviewsApi,
   updateInterviewApi,
   deleteInterviewsApi,
-  retrieveInterviewApi,
 } from "../api/UserDetailsApiService";
 import { Table, Form } from "react-bootstrap";
 import Spinner from "react-bootstrap/Spinner";
@@ -136,6 +135,7 @@ function InterviewsComponent() {
 
   const handleDelete = async (id) => {
     const confirmDelete = window.confirm("Are you sure you want to delete?");
+
     if (confirmDelete) {
       try {
         await deleteInterviewsApi(id);
@@ -241,11 +241,13 @@ function InterviewsComponent() {
                 <i
                   className="bi bi-pencil-square me-3 text-primary"
                   style={{ cursor: "pointer" }}
+                  data-testid="edit-icon"
                   onClick={() => handleEdit(interview)}
                 ></i>
                 <i
                   className="bi bi-trash text-danger"
                   style={{ cursor: "pointer" }}
+                  data-testid="delete-icon"
                   onClick={() => handleDelete(interview.id)}
                 ></i>
               </td>
@@ -280,9 +282,10 @@ function InterviewsComponent() {
             <form>
               {/* Recruiter Name */}
               <div>
-                <label>Recruiter Name</label>
+                <label id="recruiterName">Recruiter Name</label>
                 <input
                   type="text"
+                  aria-labelledby="recruiterName"
                   value={editingInterview ? editingInterview.recruiterName : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -295,9 +298,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Round */}
-                <label>Round</label>
+                <label id="round">Round</label>
                 <input
                   type="text"
+                  aria-labelledby="round"
                   value={editingInterview ? editingInterview.round : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -310,9 +314,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Interview Date */}
-                <label>Interview Date</label>
+                <label id="interviewDate">Interview Date</label>
                 <input
                   type="date"
+                  aria-labelledby="interviewDate"
                   value={editingInterview ? editingInterview.interviewDate : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -325,9 +330,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Interview Time */}
-                <label>Interview Time</label>
+                <label id="interviewTime">Interview Time</label>
                 <input
                   type="text"
+                  aria-labelledby="interviewTime"
                   value={editingInterview ? editingInterview.interviewTime : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -340,9 +346,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Consultant Name */}
-                <label>Consultant Name</label>
+                <label id="consultantName">Consultant Name</label>
                 <input
                   type="text"
+                  aria-labelledby="consultantName"
                   value={
                     editingInterview ? editingInterview.consultantName : ""
                   }
@@ -357,9 +364,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Own Support */}
-                <label>Own Support</label>
+                <label id="ownSupport">Own Support</label>
                 <input
                   type="text"
+                  aria-labelledby="ownSupport"
                   value={editingInterview ? editingInterview.ownSupport : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -372,9 +380,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Technology */}
-                <label>Technology</label>
+                <label id="technology">Technology</label>
                 <input
                   type="text"
+                  aria-labelledby="technology"
                   value={editingInterview ? editingInterview.technology : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -387,9 +396,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Client Type */}
-                <label>Client Type</label>
+                <label id="clientType">Client Type</label>
                 <input
                   type="text"
+                  aria-labelledby="clientType"
                   value={editingInterview ? editingInterview.clientType : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -402,9 +412,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Client Name */}
-                <label>Client Name</label>
+                <label id="clientName">Client Name</label>
                 <input
                   type="text"
+                  aria-labelledby="clientName"
                   value={editingInterview ? editingInterview.clientName : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -417,9 +428,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Location */}
-                <label>Location</label>
+                <label id="location">Location</label>
                 <input
                   type="text"
+                  aria-labelledby="location"
                   value={editingInterview ? editingInterview.location : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -432,9 +444,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Rate */}
-                <label>Rate</label>
+                <label id="rate">Rate</label>
                 <input
                   type="text"
+                  aria-labelledby="rate"
                   value={editingInterview ? editingInterview.rate : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -447,9 +460,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Vendor */}
-                <label>Vendor</label>
+                <label id="vendor">Vendor</label>
                 <input
                   type="text"
+                  aria-labelledby="vendor"
                   value={editingInterview ? editingInterview.vendor : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -462,9 +476,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Feedback */}
-                <label>Feedback</label>
+                <label id="feedback">Feedback</label>
                 <input
                   type="text"
+                  aria-labelledby="feedback"
                   value={editingInterview ? editingInterview.feedback : ""}
                   onChange={(e) =>
                     setEditingInterview({
@@ -477,9 +492,10 @@ function InterviewsComponent() {
 
               <div>
                 {/* Comments */}
-                <label>Comments</label>
+                <label id="comments">Comments</label>
                 <input
                   type="text"
+                  aria-labelledby="comments"
                   value={editingInterview ? editingInterview.comments : ""}
                   onChange={(e) =>
                     setEditingInterview({
